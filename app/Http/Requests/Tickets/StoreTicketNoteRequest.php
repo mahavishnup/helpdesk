@@ -25,8 +25,14 @@ final class StoreTicketNoteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'content' => ['required', 'string', 'min:2', 'max:2000'],
+            'content' => ['required_without:note', 'nullable', 'string', 'min:2', 'max:2000'],
+            'note'    => ['required_without:content', 'nullable', 'string', 'min:2', 'max:2000'],
         ];
+    }
+
+    public function noteContent(): string
+    {
+        return (string) ($this->input('content') ?? $this->input('note'));
     }
 
     /**

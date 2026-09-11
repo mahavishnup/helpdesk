@@ -1,5 +1,7 @@
 # Phase 5 — Ticket Details, Forms & Activity Timeline Implementation Plan
 
+> **Status**: 🟢 **COMPLETED**
+
 ## Overview
 
 Deliver the remaining user experience workflows: an accessible Ticket Creation form with dynamic urgent `due_at` requirements, an Edit form with closed-ticket protection, a Ticket Detail page featuring lifecycle transition action buttons and an audit/notes timeline, and an updated Dashboard featuring one-click filter KPI cards.
@@ -106,10 +108,10 @@ const isUrgent = data.priority === 'urgent';
 ## Success Criteria:
 
 ### Automated Verification:
-- [ ] TypeScript typecheck passes: `npm run types:check`
-- [ ] Vite-plus check passes: `npm run check`
-- [ ] Production build succeeds: `npm run build`
-- [ ] Full backend tests pass: `composer run test`
+- [x] TypeScript typecheck passes: `npm run types:check`
+- [x] Vite-plus check passes: `npm run check`
+- [x] Production build succeeds: `npm run build`
+- [x] Full backend tests pass: `composer run test`
 
 ### Manual Verification:
 - [ ] Create a new ticket with `Priority = Urgent`; confirm validation requires `due_at`.

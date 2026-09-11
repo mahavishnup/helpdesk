@@ -15,6 +15,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as ticketsIndex } from '@/routes/tickets';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
@@ -31,7 +32,7 @@ export function AppSidebar() {
         },
         {
             title: 'Support Tickets',
-            href: '/tickets',
+            href: ticketsIndex.url(),
             icon: Ticket,
         },
     ];

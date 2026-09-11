@@ -1,6 +1,6 @@
 # Support Ticket Management System
 
-[![Tests](https://img.shields.io/badge/tests-91%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-114%20passed-brightgreen.svg)](tests/)
 [![Laravel](https://img.shields.io/badge/Laravel-13.17-FF2D20.svg?logo=laravel)](https://laravel.com)
 [![PHP](https://img.shields.io/badge/PHP-8.4-777BB4.svg?logo=php)](https://php.net)
 [![React](https://img.shields.io/badge/React-19.2-61DAFB.svg?logo=react)](https://react.dev)
@@ -196,10 +196,12 @@ composer run ci:check
 ## 🏛 Architectural Decisions & Rationale
 
 1. **Thin Controllers & Dedicated Service Layer**: Controllers coordinate HTTP requests and responses; all business logic (transition validation, activity logging, SLA calculations) is isolated in `TicketService`.
-2. **PHP Backed Enums**: `TicketStatus` and `TicketPriority` enforce valid values at compile time, eliminating magic strings.
-3. **Form Request Validation**: Validation rules (e.g. urgent `due_at` requirement, closed ticket immutability) live in dedicated Request classes.
-4. **Composite Database Indexing**: An index on `(status, priority, created_at)` accelerates multi-filter paginated queries.
-5. **Soft Deletes**: Tickets use `SoftDeletes` to preserve audit records while removing them from active operational views.
+2. **Strict Data Transfer Objects (DTOs)**: `CreateTicketData` and `UpdateTicketData` (PHP 8.4 `final readonly class`) strictly type incoming payloads for `TicketService`, replacing untyped arrays.
+3. **Laravel Wayfinder**: Auto-generated TypeScript route definitions (`@/routes/tickets/*`) ensure type-safe frontend actions and zero hardcoded route paths.
+4. **PHP Backed Enums**: `TicketStatus` and `TicketPriority` enforce valid values at compile time, eliminating magic strings.
+5. **Form Request Validation**: Validation rules (e.g. urgent `due_at` requirement, closed ticket immutability) live in dedicated Request classes.
+6. **Composite Database Indexing**: An index on `(status, priority, created_at)` accelerates multi-filter paginated queries.
+7. **Soft Deletes**: Tickets use `SoftDeletes` to preserve audit records while removing them from active operational views.
 
 ---
 

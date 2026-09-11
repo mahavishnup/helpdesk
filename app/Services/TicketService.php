@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Enums\TicketPriority;
+use App\Data\CreateTicketData;
+use App\Data\UpdateTicketData;
 use App\Enums\TicketStatus;
 use App\Models\Ticket;
 use App\Models\TicketActivity;
@@ -19,24 +20,22 @@ final class TicketService
     /**
      * Create a new support ticket with initial audit activity.
      *
-     * @param  array<string, mixed>  $data
+     * @param  CreateTicketData|array<string, mixed>  $data
      */
-    public function createTicket(array $data, User $creator): Ticket
+    public function createTicket(CreateTicketData | array $data, User $creator): Ticket
     {
-        return DB::transaction(function () use ($data, $creator): Ticket {
-            $priority = $data['priority'] instanceof TicketPriority
-                ? $data['priority']
-                : TicketPriority::from((string) $data['priority']);
+        $dto = $data instanceof CreateTicketData ? $data : CreateTicketData::fromArray($data);
 
+        return DB::transaction(function () use ($dto, $creator): Ticket {
             /** @var Ticket $ticket */
             $ticket = Ticket::create([
-                'title'          => (string) $data['title'],
-                'description'    => (string) $data['description'],
+                'title'          => $dto->title,
+                'description'    => $dto->description,
                 'status'         => TicketStatus::Open, // New tickets always start as Open
-                'priority'       => $priority,
-                'customer_name'  => (string) $data['customer_name'],
-                'customer_email' => (string) $data['customer_email'],
-                'due_at'         => $data['due_at'] ?? null,
+                'priority'       => $dto->priority,
+                'customer_name'  => $dto->customerName,
+                'customer_email' => $dto->customerEmail,
+                'due_at'         => $dto->dueAt,
                 'created_by'     => $creator->id,
             ]);
 
@@ -55,11 +54,11 @@ final class TicketService
     /**
      * Update an existing ticket with validation check for terminal closed state.
      *
-     * @param  array<string, mixed>  $data
+     * @param  UpdateTicketData|array<string, mixed>  $data
      *
      * @throws ValidationException
      */
-    public function updateTicket(Ticket $ticket, array $data, User $user): Ticket
+    public function updateTicket(Ticket $ticket, UpdateTicketData | array $data, User $user): Ticket
     {
         if (! $ticket->can_be_edited) {
             throw ValidationException::withMessages([
@@ -67,19 +66,22 @@ final class TicketService
             ]);
         }
 
-        return DB::transaction(function () use ($ticket, $data): Ticket {
-            $priority = isset($data['priority'])
-                ? ($data['priority'] instanceof TicketPriority ? $data['priority'] : TicketPriority::from((string) $data['priority']))
-                : $ticket->priority;
+        $dto = $data instanceof UpdateTicketData ? $data : UpdateTicketData::fromArray($data);
 
-            $ticket->update([
-                'title'          => (string) ($data['title'] ?? $ticket->title),
-                'description'    => (string) ($data['description'] ?? $ticket->description),
-                'priority'       => $priority,
-                'customer_name'  => (string) ($data['customer_name'] ?? $ticket->customer_name),
-                'customer_email' => (string) ($data['customer_email'] ?? $ticket->customer_email),
-                'due_at'         => array_key_exists('due_at', $data) ? $data['due_at'] : $ticket->due_at,
-            ]);
+        return DB::transaction(function () use ($ticket, $dto): Ticket {
+            $attributes = [
+                'title'          => $dto->title,
+                'description'    => $dto->description,
+                'priority'       => $dto->priority,
+                'customer_name'  => $dto->customerName,
+                'customer_email' => $dto->customerEmail,
+            ];
+
+            if ($dto->hasDueAt) {
+                $attributes['due_at'] = $dto->dueAt;
+            }
+
+            $ticket->update($attributes);
 
             return $ticket->fresh() ?? $ticket;
         });

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Data\CreateTicketData;
+use App\Data\UpdateTicketData;
 use App\Enums\TicketPriority;
 use App\Enums\TicketStatus;
 use App\Http\Requests\Tickets\StoreTicketNoteRequest;
@@ -90,7 +92,10 @@ final class TicketController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $ticket = $this->ticketService->createTicket($request->validated(), $user);
+        $ticket = $this->ticketService->createTicket(
+            CreateTicketData::fromRequest($request),
+            $user
+        );
 
         return redirect()
             ->route('tickets.show', $ticket)
@@ -146,7 +151,11 @@ final class TicketController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $this->ticketService->updateTicket($ticket, $request->validated(), $user);
+        $this->ticketService->updateTicket(
+            $ticket,
+            UpdateTicketData::fromRequest($request),
+            $user
+        );
 
         return redirect()
             ->route('tickets.show', $ticket)
@@ -182,7 +191,7 @@ final class TicketController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $this->ticketService->addInternalNote($ticket, $user, (string) $request->validated('content'));
+        $this->ticketService->addInternalNote($ticket, $user, $request->noteContent());
 
         return back()->with('success', 'Internal note added to timeline.');
     }
