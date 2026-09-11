@@ -77,15 +77,15 @@ The project is divided into **7 sequential phases** specifically structured for 
 
 Each phase has a dedicated, complete implementation plan in `thoughts/shared/plans/`:
 
-### Phase 0: Baseline Starter Kit `[COMPLETED]`
+### Phase 0: Baseline Starter Kit 🟢 `[COMPLETED]`
 - **Plan**: Starter kit baseline
 - **Objective**: Establish clean Laravel 13 + React/TS starter kit baseline.
-- **Git Commit**: `4b3bd92` (`Initial commit: Laravel 13 with React TypeScript Starter Kit`).
+- **Git Commit**: (`Initial commit: Laravel 13 with React TypeScript Starter Kit`).
 - **Status**: 91 passing tests (`composer run test`).
 
 ---
 
-### Phase 1: Database Architecture, Enums & Domain Models `[COMPLETED / READY TO COMMIT]`
+### Phase 1: Database Architecture, Enums & Domain Models 🟢 `[COMPLETED]`
 - **Detailed Plan**: [2026-09-12-phase-1-database-and-domain.md](thoughts/shared/plans/2026-09-12-phase-1-database-and-domain.md)
 - **Objective**: Implement core data layer with typed backed enums, indexes, models, and realistic seeders.
 - **Files**:
@@ -106,7 +106,7 @@ Each phase has a dedicated, complete implementation plan in `thoughts/shared/pla
 
 ---
 
-### Phase 2: Service Layer & Business Logic `[PENDING]`
+### Phase 2: Service Layer & Business Logic 🟢 `[COMPLETED]`
 - **Detailed Plan**: [2026-09-12-phase-2-service-layer-and-validation.md](thoughts/shared/plans/2026-09-12-phase-2-service-layer-and-validation.md)
 - **Objective**: Encapsulate all business rules, status machine logic, and validation outside controllers.
 - **Files**:
@@ -115,8 +115,6 @@ Each phase has a dedicated, complete implementation plan in `thoughts/shared/pla
   - `app/Http/Requests/Tickets/UpdateTicketRequest.php`: Validates updates, prevents editing closed tickets.
   - `app/Http/Requests/Tickets/UpdateTicketStatusRequest.php`: Validates state transition validity.
   - `app/Http/Requests/Tickets/StoreTicketNoteRequest.php`: Validates staff internal note text.
-- **Verification Command**:
-  ```bash
 - **Verification Commands**:
   ```bash
   composer run lint
@@ -126,7 +124,7 @@ Each phase has a dedicated, complete implementation plan in `thoughts/shared/pla
 
 ---
 
-### Phase 3: HTTP Controllers, Routing & Dashboard Integration `[PENDING]`
+### Phase 3: HTTP Controllers, Routing & Dashboard Integration 🟡 `[IN PROGRESS]`
 - **Detailed Plan**: [2026-09-12-phase-3-controller-and-routes.md](thoughts/shared/plans/2026-09-12-phase-3-controller-and-routes.md)
 - **Objective**: Wire up thin controller, route definitions, and dashboard KPI aggregation.
 - **Files**:
@@ -143,7 +141,7 @@ Each phase has a dedicated, complete implementation plan in `thoughts/shared/pla
 
 ---
 
-### Phase 4: Frontend Ticket List & Filtering UI `[PENDING]`
+### Phase 4: Frontend Ticket List & Filtering UI ⚪ `[PENDING]`
 - **Detailed Plan**: [2026-09-12-phase-4-frontend-ticket-list.md](thoughts/shared/plans/2026-09-12-phase-4-frontend-ticket-list.md)
 - **Objective**: Build responsive ticket table with debounced search, status/priority/SLA filters, and pagination.
 - **Files**:
@@ -162,7 +160,7 @@ Each phase has a dedicated, complete implementation plan in `thoughts/shared/pla
 
 ---
 
-### Phase 5: Ticket Details, Forms & Activity Timeline `[PENDING]`
+### Phase 5: Ticket Details, Forms & Activity Timeline ⚪ `[PENDING]`
 - **Detailed Plan**: [2026-09-12-phase-5-details-forms-and-timeline.md](thoughts/shared/plans/2026-09-12-phase-5-details-forms-and-timeline.md)
 - **Objective**: Implement ticket creation, editing with closed-ticket warning, detail view with timeline, and dashboard KPI cards.
 - **Files**:
@@ -178,7 +176,7 @@ Each phase has a dedicated, complete implementation plan in `thoughts/shared/pla
 
 ---
 
-### Phase 6: Automated Pest Feature Test Suite `[PENDING]`
+### Phase 6: Automated Pest Feature Test Suite ⚪ `[PENDING]`
 - **Detailed Plan**: [2026-09-12-phase-6-automated-test-suite.md](thoughts/shared/plans/2026-09-12-phase-6-automated-test-suite.md)
 - **Objective**: Validate all business rules, edge cases, state transitions, and authorization via Pest.
 - **Files**:
@@ -195,7 +193,7 @@ Each phase has a dedicated, complete implementation plan in `thoughts/shared/pla
 
 ---
 
-### Phase 7: Final Code Quality, Production Build & Documentation `[PENDING]`
+### Phase 7: Final Code Quality, Production Build & Documentation ⚪ `[PENDING]`
 - **Detailed Plan**: [2026-09-12-phase-7-polish-and-submission.md](thoughts/shared/plans/2026-09-12-phase-7-polish-and-submission.md)
 - **Objective**: Complete documentation, format code, and verify production build.
 - **Files**:
