@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\TeamInvitation;
+use App\Services\TicketService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 final class DashboardController extends Controller
 {
+    public function __construct(
+        private readonly TicketService $ticketService,
+    ) {}
+
     public function __invoke(Request $request): Response
     {
         $email = mb_strtolower($request->user()->email);
@@ -35,6 +40,7 @@ final class DashboardController extends Controller
 
         return Inertia::render('dashboard', [
             'pendingInvitations' => $pendingInvitations,
+            'ticketMetrics'      => $this->ticketService->getDashboardMetrics(),
         ]);
     }
 }

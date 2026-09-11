@@ -124,7 +124,7 @@ Each phase has a dedicated, complete implementation plan in `thoughts/shared/pla
 
 ---
 
-### Phase 3: HTTP Controllers, Routing & Dashboard Integration 🟡 `[IN PROGRESS]`
+### Phase 3: HTTP Controllers, Routing & Dashboard Integration 🟢 `[COMPLETED]`
 - **Detailed Plan**: [2026-09-12-phase-3-controller-and-routes.md](thoughts/shared/plans/2026-09-12-phase-3-controller-and-routes.md)
 - **Objective**: Wire up thin controller, route definitions, and dashboard KPI aggregation.
 - **Files**:
@@ -141,7 +141,7 @@ Each phase has a dedicated, complete implementation plan in `thoughts/shared/pla
 
 ---
 
-### Phase 4: Frontend Ticket List & Filtering UI ⚪ `[PENDING]`
+### Phase 4: Frontend Ticket List & Filtering UI 🟡 `[IN PROGRESS]`
 - **Detailed Plan**: [2026-09-12-phase-4-frontend-ticket-list.md](thoughts/shared/plans/2026-09-12-phase-4-frontend-ticket-list.md)
 - **Objective**: Build responsive ticket table with debounced search, status/priority/SLA filters, and pagination.
 - **Files**:

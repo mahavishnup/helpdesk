@@ -1,5 +1,7 @@
 # Phase 4 — Frontend Ticket List, Filter Bar & SLA Badges Implementation Plan
 
+> **Status**: 🟡 **IN PROGRESS**
+
 ## Overview
 
 Construct the primary user interface for managing support tickets (`tickets/index.tsx`). Build accessible, reusable UI components including colored status, priority, and SLA badges, a debounced server-side filter bar, pagination navigation, and a responsive table/card layout.
