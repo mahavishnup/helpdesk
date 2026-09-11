@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import {
     AlertCircle,
     ArrowLeft,
@@ -27,6 +27,9 @@ interface TicketsCreateProps {
 }
 
 export default function TicketsCreate({ priorities }: TicketsCreateProps) {
+    const page = usePage();
+    const teamSlug = page.props.currentTeam?.slug ?? '';
+
     const { data, setData, post, processing, errors } = useForm<{
         title: string;
         description: string;
@@ -47,7 +50,7 @@ export default function TicketsCreate({ priorities }: TicketsCreateProps) {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(store.url());
+        post(store.url(teamSlug));
     };
 
     return (
@@ -58,7 +61,7 @@ export default function TicketsCreate({ priorities }: TicketsCreateProps) {
                 {/* Back Link & Header */}
                 <div className="space-y-3">
                     <Link
-                        href={index.url()}
+                        href={index.url(teamSlug)}
                         className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-xs transition-colors"
                     >
                         <ArrowLeft className="h-3.5 w-3.5" />
@@ -256,7 +259,7 @@ export default function TicketsCreate({ priorities }: TicketsCreateProps) {
 
                     {/* Form Footer Actions */}
                     <div className="flex items-center justify-end gap-3 border-t pt-5">
-                        <Link href={index.url()}>
+                        <Link href={index.url(teamSlug)}>
                             <Button
                                 type="button"
                                 variant="outline"
@@ -289,15 +292,17 @@ export default function TicketsCreate({ priorities }: TicketsCreateProps) {
     );
 }
 
-TicketsCreate.layout = {
+TicketsCreate.layout = (props: { currentTeam?: { slug: string } | null }) => ({
     breadcrumbs: [
         {
             title: 'Support Tickets',
-            href: index.url(),
+            href: props.currentTeam
+                ? index.url(props.currentTeam.slug)
+                : '/tickets',
         },
         {
             title: 'Create Ticket',
-            href: create.url(),
+            href: props.currentTeam ? create.url(props.currentTeam.slug) : '#',
         },
     ],
-};
+});

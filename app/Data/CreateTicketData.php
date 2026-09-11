@@ -11,6 +11,7 @@ use Carbon\CarbonImmutable;
 final readonly class CreateTicketData
 {
     public function __construct(
+        public int $teamId,
         public string $title,
         public string $description,
         public TicketPriority $priority,
@@ -19,12 +20,12 @@ final readonly class CreateTicketData
         public ?CarbonImmutable $dueAt = null,
     ) {}
 
-    public static function fromRequest(StoreTicketRequest $request): self
+    public static function fromRequest(StoreTicketRequest $request, int $teamId): self
     {
         /** @var array{title: string, description: string, priority: string|TicketPriority, customer_name: string, customer_email: string, due_at?: string|null} $validated */
         $validated = $request->validated();
 
-        return self::fromArray($validated);
+        return self::fromArray([...$validated, 'team_id' => $teamId]);
     }
 
     /**
@@ -42,6 +43,7 @@ final readonly class CreateTicketData
         }
 
         return new self(
+            teamId: (int) $data['team_id'],
             title: (string) $data['title'],
             description: (string) $data['description'],
             priority: $priority,

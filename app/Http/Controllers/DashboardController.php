@@ -40,7 +40,7 @@ final class DashboardController extends Controller
 
         return Inertia::render('dashboard', [
             'pendingInvitations' => $pendingInvitations,
-            'ticketMetrics'      => $this->ticketService->getDashboardMetrics(),
+            'ticketMetrics'      => $this->ticketService->getDashboardMetrics($request->user()->currentTeam),
         ]);
     }
 }

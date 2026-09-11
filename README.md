@@ -1,6 +1,6 @@
 # Support Ticket Management System
 
-[![Tests](https://img.shields.io/badge/tests-114%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-121%20passed-brightgreen.svg)](tests/)
 [![Laravel](https://img.shields.io/badge/Laravel-13.17-FF2D20.svg?logo=laravel)](https://laravel.com)
 [![PHP](https://img.shields.io/badge/PHP-8.4-777BB4.svg?logo=php)](https://php.net)
 [![React](https://img.shields.io/badge/React-19.2-61DAFB.svg?logo=react)](https://react.dev)
@@ -10,7 +10,7 @@
 
 A small, production-minded **Support Ticket Management System** built with **Laravel 13 (PHP 8.4)**, **Inertia.js v3**, **React 19**, and **TypeScript**.
 
-Focused on maintainable software design, robust state transition enforcement, and production engineering practices.
+Focused on maintainable software design, robust state transition enforcement, multi-tenant team isolation, and production engineering practices.
 
 ---
 
@@ -35,24 +35,30 @@ Focused on maintainable software design, robust state transition enforcement, an
 
 ## 🏢 About the Project
 
-This system allows support staff to track customer issues through their complete operational lifecycle. Designed with production sensibilities, it features server-side search and filtering, bounded pagination, strict state transition validation, real-time SLA breach detection, activity audit logging, and automated feature test coverage.
+This system allows support staff to track customer issues through their complete operational lifecycle. Designed with production sensibilities, it features multi-tenant organization scoping, server-side search and filtering, bounded pagination, strict state transition validation, real-time SLA breach detection, activity audit logging, and automated feature test coverage.
 
 ---
 
 ## ⚡ Key Features & Business Rules
 
-### 1. Ticket Lifecycle State Machine
+### 1. Multi-Tenant Organization Scoping
+- Built on a **shared database multi-tenant architecture** scoped by `Team`.
+- All ticket operations are mounted under the `{current_team}` route prefix guarded by `EnsureTeamMembership`.
+- Strict tenant boundaries: Users cannot view, transition, edit, or delete tickets belonging to other organizations (aborts with HTTP 403).
+- Dashboard KPIs and SLA metrics are strictly partitioned per tenant.
+
+### 2. Ticket Lifecycle State Machine
 Tickets follow a strict transition workflow to prevent invalid operational states:
 - **`Open`** $\rightarrow$ `In Progress`, `Resolved`
 - **`In Progress`** $\rightarrow$ `Open`, `Resolved`
 - **`Resolved`** $\rightarrow$ `In Progress`, `Closed`
 - **`Closed`** $\rightarrow$ **Terminal State** (immutable; cannot be edited or reopened)
 
-### 2. Priority & Mandatory Due Dates
+### 3. Priority & Mandatory Due Dates
 - Supported priorities: `Low`, `Medium`, `High`, `Urgent`.
 - **Urgent Priority Rule**: When `priority = urgent`, a `due_at` timestamp is **mandatory**. Non-urgent tickets may omit this field.
 
-### 3. Server-Side Filtering & Search
+### 4. Server-Side Filtering & Search
 - Full-text search across `title`, `description`, `customer_name`, and `customer_email`.
 - Multi-dimensional filtering by `status`, `priority`, and `SLA health`.
 - Bounded server-side pagination to protect database performance.
@@ -61,16 +67,20 @@ Tickets follow a strict transition workflow to prevent invalid operational state
 
 ## 💡 High-Impact Innovations
 
-1. **Automated SLA Health & Breach Engine**:
+1. **Multi-Tenant Shared Database Architecture & Strict Security**:
+   - Organization-scoped routes (`/{current_team}/tickets/*`) with seamless team switching.
+   - Composite database indexing `(team_id, status, priority, created_at)` optimizing multi-filter queries at scale.
+   - Zero cross-tenant data leaks enforced at both controller and service levels.
+2. **Automated SLA Health & Breach Engine**:
    - Leverages the required `due_at` date to calculate real-time SLA badges:
      - 🔴 **`SLA Breached`**: Deadline has passed (`due_at < NOW()`).
      - 🟡 **`Due Soon`**: Approaching breach within 4 hours (`due_at <= NOW() + 4h`).
      - 🟢 **`On Track`**: Healthy buffer (`due_at > NOW() + 4h`).
    - Includes quick-filter presets on the dashboard and ticket list.
-2. **Activity Audit Trail & Internal Staff Notes**:
+3. **Activity Audit Trail & Internal Staff Notes**:
    - Immutable audit timeline logging lifecycle transitions and author details.
    - Dedicated private staff notes form on the ticket detail page for internal collaboration.
-3. **Streamed CSV Export**:
+4. **Streamed CSV Export**:
    - Native Laravel `StreamedResponse` streaming SQL cursor rows directly to CSV, bypassing memory limits without third-party dependencies.
 
 ---
@@ -200,7 +210,7 @@ composer run ci:check
 3. **Laravel Wayfinder**: Auto-generated TypeScript route definitions (`@/routes/tickets/*`) ensure type-safe frontend actions and zero hardcoded route paths.
 4. **PHP Backed Enums**: `TicketStatus` and `TicketPriority` enforce valid values at compile time, eliminating magic strings.
 5. **Form Request Validation**: Validation rules (e.g. urgent `due_at` requirement, closed ticket immutability) live in dedicated Request classes.
-6. **Composite Database Indexing**: An index on `(status, priority, created_at)` accelerates multi-filter paginated queries.
+6. **Multi-Tenant Composite Database Indexing**: An index on `(team_id, status, priority, created_at)` and `(team_id, created_at)` accelerates multi-filter paginated queries while strictly isolating tenant datasets.
 7. **Soft Deletes**: Tickets use `SoftDeletes` to preserve audit records while removing them from active operational views.
 
 ---

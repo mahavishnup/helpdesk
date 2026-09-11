@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Enums\TicketPriority;
 use App\Enums\TicketStatus;
+use App\Models\Team;
 use App\Models\Ticket;
 use App\Models\TicketActivity;
 use App\Models\User;
@@ -22,6 +23,15 @@ final class TicketSeeder extends Seeder
             'name'  => 'Support Lead',
             'email' => 'test@example.com',
         ]);
+
+        $team = $agent->currentTeam ?? $agent->personalTeam();
+        if (! $team) {
+            $team = Team::factory()->create([
+                'name' => "Support Lead's Team",
+            ]);
+            $agent->teams()->attach($team, ['role' => 'owner']);
+            $agent->switchTeam($team);
+        }
 
         $sampleTickets = [
             [
@@ -132,6 +142,7 @@ final class TicketSeeder extends Seeder
 
             $ticket = Ticket::create([
                 ...$data,
+                'team_id'    => $team->id,
                 'created_by' => $agent->id,
             ]);
 

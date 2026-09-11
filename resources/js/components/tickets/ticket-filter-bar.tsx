@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Download, RotateCcw, Search } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,9 @@ export function TicketFilterBar({
     statuses,
     priorities,
 }: TicketFilterBarProps) {
+    const page = usePage();
+    const teamSlug = page.props.currentTeam?.slug ?? '';
+
     const [search, setSearch] = useState<string>(filters.search ?? '');
     const [status, setStatus] = useState<string>(filters.status ?? '');
     const [priority, setPriority] = useState<string>(filters.priority ?? '');
@@ -64,13 +67,13 @@ export function TicketFilterBar({
                 query.sla = finalSla;
             }
 
-            router.get(index.url(), query, {
+            router.get(index.url(teamSlug), query, {
                 preserveState: true,
                 preserveScroll: true,
                 replace: true,
             });
         },
-        [search, status, priority, sla],
+        [search, status, priority, sla, teamSlug],
     );
 
     // Debounce text search input by 300ms
@@ -89,7 +92,11 @@ export function TicketFilterBar({
         setStatus('');
         setPriority('');
         setSla('');
-        router.get(index.url(), {}, { preserveState: true, replace: true });
+        router.get(
+            index.url(teamSlug),
+            {},
+            { preserveState: true, replace: true },
+        );
     };
 
     const hasActiveFilters = Boolean(
@@ -111,7 +118,9 @@ export function TicketFilterBar({
             exportQuery.sla = sla;
         }
 
-        window.location.href = exportMethod.url({ query: exportQuery });
+        window.location.href = exportMethod.url(teamSlug, {
+            query: exportQuery,
+        });
     };
 
     return (

@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import {
     AlertCircle,
     ArrowUpRight,
@@ -51,6 +51,9 @@ export default function Dashboard({
         due_soon: 0,
     },
 }: Props) {
+    const page = usePage();
+    const teamSlug = page.props.currentTeam?.slug ?? '';
+
     const [showInvitations, setShowInvitations] = useState(
         pendingInvitations.length > 0,
     );
@@ -61,7 +64,7 @@ export default function Dashboard({
             count: ticketMetrics.total,
             description: 'All recorded tickets',
             icon: TicketIcon,
-            href: ticketsIndex.url(),
+            href: ticketsIndex.url(teamSlug),
             badgeColor: 'bg-muted text-foreground',
             trendColor: 'text-foreground',
         },
@@ -70,7 +73,7 @@ export default function Dashboard({
             count: ticketMetrics.open,
             description: 'Awaiting triage & response',
             icon: Inbox,
-            href: ticketsIndex.url({ query: { status: 'open' } }),
+            href: ticketsIndex.url(teamSlug, { query: { status: 'open' } }),
             badgeColor: 'bg-blue-500/10 text-blue-700 dark:text-blue-300',
             trendColor: 'text-blue-600 dark:text-blue-400',
         },
@@ -79,7 +82,9 @@ export default function Dashboard({
             count: ticketMetrics.in_progress,
             description: 'Actively being investigated',
             icon: Play,
-            href: ticketsIndex.url({ query: { status: 'in_progress' } }),
+            href: ticketsIndex.url(teamSlug, {
+                query: { status: 'in_progress' },
+            }),
             badgeColor: 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
             trendColor: 'text-amber-600 dark:text-amber-400',
         },
@@ -88,7 +93,7 @@ export default function Dashboard({
             count: ticketMetrics.urgent,
             description: 'High-severity issues',
             icon: Flame,
-            href: ticketsIndex.url({ query: { priority: 'urgent' } }),
+            href: ticketsIndex.url(teamSlug, { query: { priority: 'urgent' } }),
             badgeColor: 'bg-red-500/10 text-red-700 dark:text-red-300',
             trendColor: 'text-red-600 dark:text-red-400',
         },
@@ -97,7 +102,7 @@ export default function Dashboard({
             count: ticketMetrics.breached,
             description: 'Past mandatory SLA deadline',
             icon: AlertCircle,
-            href: ticketsIndex.url({ query: { sla: 'breached' } }),
+            href: ticketsIndex.url(teamSlug, { query: { sla: 'breached' } }),
             badgeColor:
                 'bg-rose-500/15 text-rose-700 dark:text-rose-300 font-bold',
             trendColor: 'text-rose-600 dark:text-rose-400',
@@ -108,7 +113,7 @@ export default function Dashboard({
             count: ticketMetrics.due_soon,
             description: 'Expiring in < 4 hours',
             icon: Clock,
-            href: ticketsIndex.url({ query: { sla: 'due_soon' } }),
+            href: ticketsIndex.url(teamSlug, { query: { sla: 'due_soon' } }),
             badgeColor: 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
             trendColor: 'text-amber-600 dark:text-amber-400',
         },
@@ -117,7 +122,7 @@ export default function Dashboard({
             count: ticketMetrics.resolved,
             description: 'Solutions delivered',
             icon: CheckCircle2,
-            href: ticketsIndex.url({ query: { status: 'resolved' } }),
+            href: ticketsIndex.url(teamSlug, { query: { status: 'resolved' } }),
             badgeColor:
                 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
             trendColor: 'text-emerald-600 dark:text-emerald-400',
@@ -127,7 +132,7 @@ export default function Dashboard({
             count: ticketMetrics.closed,
             description: 'Terminal lifecycle state',
             icon: Lock,
-            href: ticketsIndex.url({ query: { status: 'closed' } }),
+            href: ticketsIndex.url(teamSlug, { query: { status: 'closed' } }),
             badgeColor: 'bg-slate-500/10 text-slate-700 dark:text-slate-300',
             trendColor: 'text-slate-600 dark:text-slate-400',
         },
@@ -157,7 +162,7 @@ export default function Dashboard({
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <Link href={ticketsIndex.url()}>
+                        <Link href={ticketsIndex.url(teamSlug)}>
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -167,7 +172,7 @@ export default function Dashboard({
                                 View All Tickets
                             </Button>
                         </Link>
-                        <Link href={ticketsCreate.url()}>
+                        <Link href={ticketsCreate.url(teamSlug)}>
                             <Button size="sm" className="gap-1.5 shadow-xs">
                                 <Plus className="h-4 w-4" />
                                 Create Ticket
@@ -244,7 +249,7 @@ export default function Dashboard({
                         </p>
                         <div className="flex items-center gap-2 pt-2">
                             <Link
-                                href={ticketsIndex.url({
+                                href={ticketsIndex.url(teamSlug, {
                                     query: { sla: 'breached' },
                                 })}
                             >
@@ -259,7 +264,7 @@ export default function Dashboard({
                                 </Button>
                             </Link>
                             <Link
-                                href={ticketsIndex.url({
+                                href={ticketsIndex.url(teamSlug, {
                                     query: { sla: 'due_soon' },
                                 })}
                             >
@@ -288,7 +293,7 @@ export default function Dashboard({
                         </p>
                         <div className="flex items-center gap-2 pt-2">
                             <Link
-                                href={ticketsIndex.url({
+                                href={ticketsIndex.url(teamSlug, {
                                     query: { status: 'open' },
                                 })}
                             >
@@ -301,7 +306,7 @@ export default function Dashboard({
                                     Triage Open Tickets ({ticketMetrics.open})
                                 </Button>
                             </Link>
-                            <Link href={ticketsCreate.url()}>
+                            <Link href={ticketsCreate.url(teamSlug)}>
                                 <Button size="sm" className="gap-1.5 text-xs">
                                     <Plus className="h-3.5 w-3.5" />
                                     New Ticket

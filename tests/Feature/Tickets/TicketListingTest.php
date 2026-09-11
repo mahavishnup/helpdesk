@@ -9,16 +9,29 @@ use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('guests are redirected to login when accessing ticket list', function () {
-    $this->get(route('tickets.index'))
+    $this->get('/acme/tickets')
         ->assertRedirect(route('login'));
+});
+
+test('root tickets route redirects authenticated user to their active tenant tickets', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+
+    $this->actingAs($user)
+        ->get(route('tickets.root'))
+        ->assertRedirect(route('tickets.index', ['current_team' => $team->slug]));
 });
 
 test('authenticated user can view tickets with pagination', function () {
     $user = User::factory()->create();
-    Ticket::factory()->count(25)->create(['created_by' => $user->id]);
+    $team = $user->currentTeam;
+    Ticket::factory()->count(25)->create([
+        'team_id'    => $team->id,
+        'created_by' => $user->id,
+    ]);
 
     $this->actingAs($user)
-        ->get(route('tickets.index'))
+        ->get(route('tickets.index', ['current_team' => $team->slug]))
         ->assertOk()
         ->assertInertia(
             fn (Assert $page) => $page
@@ -33,21 +46,24 @@ test('authenticated user can view tickets with pagination', function () {
 
 test('tickets can be searched by title, description, and customer', function () {
     $user = User::factory()->create();
+    $team = $user->currentTeam;
 
     Ticket::factory()->create([
+        'team_id'       => $team->id,
         'title'         => 'Unique Alpha Search Term',
         'customer_name' => 'General Kenobi',
         'created_by'    => $user->id,
     ]);
 
     Ticket::factory()->create([
+        'team_id'       => $team->id,
         'title'         => 'Standard Routine Maintenance',
         'customer_name' => 'Luke Skywalker',
         'created_by'    => $user->id,
     ]);
 
     $this->actingAs($user)
-        ->get(route('tickets.index', ['search' => 'Alpha']))
+        ->get(route('tickets.index', ['current_team' => $team->slug, 'search' => 'Alpha']))
         ->assertOk()
         ->assertInertia(
             fn (Assert $page) => $page
@@ -57,7 +73,7 @@ test('tickets can be searched by title, description, and customer', function () 
         );
 
     $this->actingAs($user)
-        ->get(route('tickets.index', ['search' => 'Kenobi']))
+        ->get(route('tickets.index', ['current_team' => $team->slug, 'search' => 'Kenobi']))
         ->assertOk()
         ->assertInertia(
             fn (Assert $page) => $page
@@ -68,8 +84,10 @@ test('tickets can be searched by title, description, and customer', function () 
 
 test('tickets can be filtered by status and priority', function () {
     $user = User::factory()->create();
+    $team = $user->currentTeam;
 
     Ticket::factory()->create([
+        'team_id'    => $team->id,
         'status'     => TicketStatus::InProgress,
         'priority'   => TicketPriority::Urgent,
         'due_at'     => now()->addHours(2),
@@ -77,6 +95,7 @@ test('tickets can be filtered by status and priority', function () {
     ]);
 
     Ticket::factory()->create([
+        'team_id'    => $team->id,
         'status'     => TicketStatus::Open,
         'priority'   => TicketPriority::Low,
         'created_by' => $user->id,
@@ -84,8 +103,9 @@ test('tickets can be filtered by status and priority', function () {
 
     $this->actingAs($user)
         ->get(route('tickets.index', [
-            'status'   => 'in_progress',
-            'priority' => 'urgent',
+            'current_team' => $team->slug,
+            'status'       => 'in_progress',
+            'priority'     => 'urgent',
         ]))
         ->assertOk()
         ->assertInertia(
@@ -98,9 +118,11 @@ test('tickets can be filtered by status and priority', function () {
 
 test('tickets can be filtered by SLA health status', function () {
     $user = User::factory()->create();
+    $team = $user->currentTeam;
 
     // Breached ticket
     Ticket::factory()->create([
+        'team_id'    => $team->id,
         'title'      => 'Breached Ticket',
         'status'     => TicketStatus::Open,
         'priority'   => TicketPriority::Urgent,
@@ -110,6 +132,7 @@ test('tickets can be filtered by SLA health status', function () {
 
     // On track ticket
     Ticket::factory()->create([
+        'team_id'    => $team->id,
         'title'      => 'On Track Ticket',
         'status'     => TicketStatus::Open,
         'priority'   => TicketPriority::Medium,
@@ -118,7 +141,10 @@ test('tickets can be filtered by SLA health status', function () {
     ]);
 
     $this->actingAs($user)
-        ->get(route('tickets.index', ['sla' => 'breached']))
+        ->get(route('tickets.index', [
+            'current_team' => $team->slug,
+            'sla'          => 'breached',
+        ]))
         ->assertOk()
         ->assertInertia(
             fn (Assert $page) => $page
@@ -129,8 +155,10 @@ test('tickets can be filtered by SLA health status', function () {
 
 test('tickets can be exported to streamed CSV', function () {
     $user = User::factory()->create();
+    $team = $user->currentTeam;
 
     Ticket::factory()->create([
+        'team_id'        => $team->id,
         'title'          => 'CSV Exportable Ticket',
         'customer_name'  => 'Elena Fisher',
         'customer_email' => 'elena@naughtydog.com',
@@ -140,7 +168,7 @@ test('tickets can be exported to streamed CSV', function () {
     ]);
 
     $response = $this->actingAs($user)
-        ->get(route('tickets.export', ['search' => 'Exportable']));
+        ->get(route('tickets.export', ['current_team' => $team->slug, 'search' => 'Exportable']));
 
     $response->assertOk();
     $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
@@ -150,4 +178,31 @@ test('tickets can be exported to streamed CSV', function () {
     $content = ob_get_clean();
 
     expect($content)->toContain('Ticket ID', 'Title', 'Customer Name', 'CSV Exportable Ticket', 'elena@naughtydog.com');
+});
+
+test('tickets belonging to other teams are completely isolated from listing', function () {
+    $user = User::factory()->create();
+    $otherUser = User::factory()->create();
+
+    Ticket::factory()->create([
+        'team_id'    => $user->currentTeam->id,
+        'title'      => 'Team Alpha Unique Ticket',
+        'created_by' => $user->id,
+    ]);
+
+    Ticket::factory()->create([
+        'team_id'    => $otherUser->currentTeam->id,
+        'title'      => 'Team Beta Private Ticket',
+        'created_by' => $otherUser->id,
+    ]);
+
+    $response = $this->actingAs($user)
+        ->get(route('tickets.index', ['current_team' => $user->currentTeam->slug]));
+
+    $response->assertOk();
+    $response->assertInertia(
+        fn (Assert $page) => $page
+            ->has('tickets.data', 1)
+            ->where('tickets.data.0.title', 'Team Alpha Unique Ticket')
+    );
 });

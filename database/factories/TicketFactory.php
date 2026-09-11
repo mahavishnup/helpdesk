@@ -6,6 +6,7 @@ namespace Database\Factories;
 
 use App\Enums\TicketPriority;
 use App\Enums\TicketStatus;
+use App\Models\Team;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -30,6 +31,16 @@ final class TicketFactory extends Factory
     public function definition(): array
     {
         return [
+            'team_id' => function (array $attributes) {
+                if (isset($attributes['created_by'])) {
+                    $creator = is_numeric($attributes['created_by']) ? User::find($attributes['created_by']) : null;
+                    if ($creator?->current_team_id) {
+                        return $creator->current_team_id;
+                    }
+                }
+
+                return Team::factory();
+            },
             'title'       => fake()->sentence(rand(4, 7)),
             'description' => fake()->paragraphs(rand(1, 3), true),
             'status'      => TicketStatus::Open,

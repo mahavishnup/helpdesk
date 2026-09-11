@@ -2,7 +2,7 @@
 
 This document provides a comprehensive, phase-by-phase implementation blueprint for the **Support Ticket Management System** assessment.
 
-The project is divided into **7 sequential phases** specifically structured for **manual developer review, local testing, and conventional git commits**.
+The project is divided into **8 sequential phases** specifically structured for **manual developer review, local testing, and conventional git commits**.
 
 ---
 
@@ -202,4 +202,26 @@ Each phase has a dedicated, complete implementation plan in `thoughts/shared/pla
   ```bash
   composer run ci:check
   npm run build
+  ```
+
+---
+
+### Phase 8: Multi-Tenant Architecture (Shared Database) & Access Restrictions 🟢 `[COMPLETED]`
+- **Detailed Plan**: [2026-09-12-phase-8-multi-tenant-architecture.md](thoughts/shared/plans/2026-09-12-phase-8-multi-tenant-architecture.md)
+- **Objective**: Enforce multi-tenancy using Team-based shared database scoping, route prefixing, and strict tenant boundary security.
+- **Files**:
+  - `database/migrations/2026_09_12_000001_create_tickets_table.php`: Add `team_id` foreign key and composite index.
+  - `app/Models/Ticket.php` & `app/Models/Team.php`: BelongsTo/HasMany tenant relationships and local scopes.
+  - `app/Data/CreateTicketData.php`: Include `teamId`.
+  - `app/Services/TicketService.php`: Tenant-scoped listing, metrics, creation, and CSV export.
+  - `app/Http/Controllers/TicketController.php`: Tenant resolution and HTTP 403 cross-tenant guards.
+  - `routes/web.php`: Mount tickets under `{current_team}` prefix with `EnsureTeamMembership`.
+  - `resources/js/`: Wayfinder route helper updates across sidebar, tickets pages, filter bar, and dashboard.
+  - `tests/Feature/Tickets/`: Feature tests updated with tenant prefix and cross-tenant isolation tests.
+- **Verification Commands**:
+  ```bash
+  php artisan migrate:fresh --seed
+  npm run build
+  npm run types:check
+  composer run ci:check
   ```

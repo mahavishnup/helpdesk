@@ -1,4 +1,4 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     AlertTriangle,
     ArrowLeft,
@@ -43,6 +43,9 @@ interface TicketsShowProps {
 }
 
 export default function TicketsShow({ ticket }: TicketsShowProps) {
+    const page = usePage();
+    const teamSlug = page.props.currentTeam?.slug ?? '';
+
     const [isTransitioning, setIsTransitioning] = useState<string | null>(null);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -59,7 +62,10 @@ export default function TicketsShow({ ticket }: TicketsShowProps) {
     const handleStatusTransition = (nextStatus: TicketStatus) => {
         setIsTransitioning(nextStatus);
         router.post(
-            updateStatus.url(ticket.id),
+            updateStatus.url({
+                current_team: teamSlug,
+                ticket: ticket.id,
+            }),
             { status: nextStatus },
             {
                 preserveScroll: true,
@@ -70,20 +76,32 @@ export default function TicketsShow({ ticket }: TicketsShowProps) {
 
     const handleNoteSubmit: FormEventHandler = (e) => {
         e.preventDefault();
-        noteForm.post(storeNote.url(ticket.id), {
-            preserveScroll: true,
-            onSuccess: () => noteForm.reset(),
-        });
+        noteForm.post(
+            storeNote.url({
+                current_team: teamSlug,
+                ticket: ticket.id,
+            }),
+            {
+                preserveScroll: true,
+                onSuccess: () => noteForm.reset(),
+            },
+        );
     };
 
     const handleDelete = () => {
         setIsDeleting(true);
-        router.delete(destroy.url(ticket.id), {
-            onFinish: () => {
-                setIsDeleting(false);
-                setDeleteModalOpen(false);
+        router.delete(
+            destroy.url({
+                current_team: teamSlug,
+                ticket: ticket.id,
+            }),
+            {
+                onFinish: () => {
+                    setIsDeleting(false);
+                    setDeleteModalOpen(false);
+                },
             },
-        });
+        );
     };
 
     const getStatusActionButton = (status: TicketStatus) => {
@@ -131,7 +149,7 @@ export default function TicketsShow({ ticket }: TicketsShowProps) {
                 {/* Back Link & Quick Actions Bar */}
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <Link
-                        href={index.url()}
+                        href={index.url(teamSlug)}
                         className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-xs transition-colors"
                     >
                         <ArrowLeft className="h-3.5 w-3.5" />
@@ -140,7 +158,12 @@ export default function TicketsShow({ ticket }: TicketsShowProps) {
 
                     <div className="flex items-center gap-2">
                         {ticket.can_be_edited && (
-                            <Link href={edit.url(ticket.id)}>
+                            <Link
+                                href={edit.url({
+                                    current_team: teamSlug,
+                                    ticket: ticket.id,
+                                })}
+                            >
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -598,15 +621,27 @@ export default function TicketsShow({ ticket }: TicketsShowProps) {
     );
 }
 
-TicketsShow.layout = (props: { ticket: Ticket }) => ({
-    breadcrumbs: [
-        {
-            title: 'Support Tickets',
-            href: index.url(),
-        },
-        {
-            title: `#${props.ticket.id}`,
-            href: show.url(props.ticket.id),
-        },
-    ],
-});
+TicketsShow.layout = (props: {
+    ticket: Ticket;
+    currentTeam?: { slug: string } | null;
+}) => {
+    const teamSlug = props.currentTeam?.slug;
+
+    return {
+        breadcrumbs: [
+            {
+                title: 'Support Tickets',
+                href: teamSlug ? index.url(teamSlug) : '/tickets',
+            },
+            {
+                title: `#${props.ticket.id}`,
+                href: teamSlug
+                    ? show.url({
+                          current_team: teamSlug,
+                          ticket: props.ticket.id,
+                      })
+                    : '#',
+            },
+        ],
+    };
+};

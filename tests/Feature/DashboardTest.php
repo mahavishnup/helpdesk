@@ -139,3 +139,31 @@ test('dashboard does not include or delete other users invitations', function ()
         'id' => $invitation->id,
     ]);
 });
+
+test('dashboard ticket metrics are strictly scoped to the active team', function () {
+    $user = User::factory()->create();
+    $otherUser = User::factory()->create();
+
+    // 2 tickets for user's team
+    App\Models\Ticket::factory()->count(2)->create([
+        'team_id'    => $user->currentTeam->id,
+        'created_by' => $user->id,
+    ]);
+
+    // 3 tickets for another team
+    App\Models\Ticket::factory()->count(3)->create([
+        'team_id'    => $otherUser->currentTeam->id,
+        'created_by' => $otherUser->id,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('dashboard', ['current_team' => $user->currentTeam->slug]));
+
+    $response->assertOk();
+    $response->assertInertia(
+        fn (Assert $page) => $page
+            ->component('dashboard')
+            ->where('ticketMetrics.total', 2)
+    );
+});

@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property int $team_id
  * @property string $title
  * @property string $description
  * @property TicketStatus $status
@@ -29,11 +30,13 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property-read Team $team
  * @property-read User|null $createdBy
  * @property-read string $sla_status
  * @property-read bool $can_be_edited
  */
 #[Fillable([
+    'team_id',
     'title',
     'description',
     'status',
@@ -59,6 +62,16 @@ final class Ticket extends Model
     ];
 
     /**
+     * The tenant team that owns this ticket.
+     *
+     * @return BelongsTo<Team, $this>
+     */
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
+    }
+
+    /**
      * The user who created the support ticket.
      *
      * @return BelongsTo<User, $this>
@@ -76,6 +89,19 @@ final class Ticket extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(TicketActivity::class)->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Scope query to a specific tenant team.
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeForTeam(Builder $query, Team | int $team): Builder
+    {
+        $teamId = $team instanceof Team ? $team->id : $team;
+
+        return $query->where('team_id', $teamId);
     }
 
     /**

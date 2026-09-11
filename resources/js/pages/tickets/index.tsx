@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Clock, Eye, Inbox, Pencil, Plus, Trash2, User } from 'lucide-react';
 import { useState } from 'react';
 import Heading from '@/components/heading';
@@ -45,6 +45,9 @@ export default function TicketsIndex({
     statuses,
     priorities,
 }: TicketsIndexProps) {
+    const page = usePage();
+    const teamSlug = page.props.currentTeam?.slug ?? '';
+
     const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -54,13 +57,19 @@ export default function TicketsIndex({
         }
 
         setIsDeleting(true);
-        router.delete(destroy.url(ticketToDelete.id), {
-            preserveScroll: true,
-            onFinish: () => {
-                setIsDeleting(false);
-                setTicketToDelete(null);
+        router.delete(
+            destroy.url({
+                current_team: teamSlug,
+                ticket: ticketToDelete.id,
+            }),
+            {
+                preserveScroll: true,
+                onFinish: () => {
+                    setIsDeleting(false);
+                    setTicketToDelete(null);
+                },
             },
-        });
+        );
     };
 
     const hasFilters = Boolean(
@@ -80,7 +89,7 @@ export default function TicketsIndex({
                     />
 
                     <div className="flex items-center gap-2">
-                        <Link href={create.url()}>
+                        <Link href={create.url(teamSlug)}>
                             <Button className="gap-2 shadow-xs">
                                 <Plus className="h-4 w-4" />
                                 Create Ticket
@@ -117,7 +126,7 @@ export default function TicketsIndex({
                                     size="sm"
                                     onClick={() =>
                                         router.get(
-                                            index.url(),
+                                            index.url(teamSlug),
                                             {},
                                             {
                                                 preserveState: true,
@@ -130,7 +139,10 @@ export default function TicketsIndex({
                                     Reset Filters
                                 </Button>
                             ) : (
-                                <Link href={create.url()} className="mt-4">
+                                <Link
+                                    href={create.url(teamSlug)}
+                                    className="mt-4"
+                                >
                                     <Button
                                         size="sm"
                                         className="gap-1.5 text-xs"
@@ -183,9 +195,11 @@ export default function TicketsIndex({
                                                 {/* Title & Customer */}
                                                 <td className="max-w-md px-4 py-3.5">
                                                     <Link
-                                                        href={show.url(
-                                                            ticket.id,
-                                                        )}
+                                                        href={show.url({
+                                                            current_team:
+                                                                teamSlug,
+                                                            ticket: ticket.id,
+                                                        })}
                                                         className="text-foreground font-medium hover:underline"
                                                     >
                                                         {ticket.title}
@@ -274,7 +288,11 @@ export default function TicketsIndex({
                                                                 >
                                                                     <Link
                                                                         href={show.url(
-                                                                            ticket.id,
+                                                                            {
+                                                                                current_team:
+                                                                                    teamSlug,
+                                                                                ticket: ticket.id,
+                                                                            },
                                                                         )}
                                                                     >
                                                                         <Button
@@ -298,7 +316,11 @@ export default function TicketsIndex({
                                                                     >
                                                                         <Link
                                                                             href={edit.url(
-                                                                                ticket.id,
+                                                                                {
+                                                                                    current_team:
+                                                                                        teamSlug,
+                                                                                    ticket: ticket.id,
+                                                                                },
                                                                             )}
                                                                         >
                                                                             <Button
@@ -371,7 +393,10 @@ export default function TicketsIndex({
 
                                         <div>
                                             <Link
-                                                href={show.url(ticket.id)}
+                                                href={show.url({
+                                                    current_team: teamSlug,
+                                                    ticket: ticket.id,
+                                                })}
                                                 className="text-foreground block font-medium hover:underline"
                                             >
                                                 {ticket.title}
@@ -395,7 +420,10 @@ export default function TicketsIndex({
 
                                             <div className="flex items-center gap-1">
                                                 <Link
-                                                    href={show.url(ticket.id)}
+                                                    href={show.url({
+                                                        current_team: teamSlug,
+                                                        ticket: ticket.id,
+                                                    })}
                                                 >
                                                     <Button
                                                         variant="outline"
@@ -409,9 +437,11 @@ export default function TicketsIndex({
 
                                                 {ticket.can_be_edited && (
                                                     <Link
-                                                        href={edit.url(
-                                                            ticket.id,
-                                                        )}
+                                                        href={edit.url({
+                                                            current_team:
+                                                                teamSlug,
+                                                            ticket: ticket.id,
+                                                        })}
                                                     >
                                                         <Button
                                                             variant="outline"
@@ -494,11 +524,13 @@ export default function TicketsIndex({
     );
 }
 
-TicketsIndex.layout = {
+TicketsIndex.layout = (props: { currentTeam?: { slug: string } | null }) => ({
     breadcrumbs: [
         {
             title: 'Support Tickets',
-            href: index.url(),
+            href: props.currentTeam
+                ? index.url(props.currentTeam.slug)
+                : '/tickets',
         },
     ],
-};
+});

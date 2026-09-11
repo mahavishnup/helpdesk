@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Data\CreateTicketData;
 use App\Data\UpdateTicketData;
 use App\Enums\TicketStatus;
+use App\Models\Team;
 use App\Models\Ticket;
 use App\Models\TicketActivity;
 use App\Models\User;
@@ -29,6 +30,7 @@ final class TicketService
         return DB::transaction(function () use ($dto, $creator): Ticket {
             /** @var Ticket $ticket */
             $ticket = Ticket::create([
+                'team_id'        => $dto->teamId,
                 'title'          => $dto->title,
                 'description'    => $dto->description,
                 'status'         => TicketStatus::Open, // New tickets always start as Open
@@ -165,13 +167,18 @@ final class TicketService
      *
      * @return array<string, int>
      */
-    public function getDashboardMetrics(): array
+    public function getDashboardMetrics(Team | int | null $team = null): array
     {
         $now = now();
         $dueSoonThreshold = now()->addHours(4);
 
+        $query = Ticket::query();
+        if ($team !== null) {
+            $query->forTeam($team);
+        }
+
         /** @var object{total: int|string|null, open: int|string|null, in_progress: int|string|null, resolved: int|string|null, closed: int|string|null, urgent: int|string|null, breached: int|string|null, due_soon: int|string|null}|null $metrics */
-        $metrics = Ticket::query()
+        $metrics = $query
             ->selectRaw("
                 COUNT(*) as total,
                 COUNT(CASE WHEN status = 'open' THEN 1 END) as open,

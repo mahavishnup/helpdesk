@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import {
     AlertCircle,
     ArrowLeft,
@@ -38,6 +38,9 @@ interface TicketsEditProps {
 }
 
 export default function TicketsEdit({ ticket, priorities }: TicketsEditProps) {
+    const page = usePage();
+    const teamSlug = page.props.currentTeam?.slug ?? '';
+
     const isClosed = !ticket.can_be_edited || ticket.status === 'closed';
 
     const { data, setData, put, processing, errors } = useForm<{
@@ -65,7 +68,7 @@ export default function TicketsEdit({ ticket, priorities }: TicketsEditProps) {
         if (isClosed) {
             return;
         }
-        put(update.url(ticket.id));
+        put(update.url({ current_team: teamSlug, ticket: ticket.id }));
     };
 
     return (
@@ -76,7 +79,10 @@ export default function TicketsEdit({ ticket, priorities }: TicketsEditProps) {
                 {/* Back Link & Header */}
                 <div className="space-y-3">
                     <Link
-                        href={show.url(ticket.id)}
+                        href={show.url({
+                            current_team: teamSlug,
+                            ticket: ticket.id,
+                        })}
                         className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-xs transition-colors"
                     >
                         <ArrowLeft className="h-3.5 w-3.5" />
@@ -112,7 +118,12 @@ export default function TicketsEdit({ ticket, priorities }: TicketsEditProps) {
                                 history.
                             </p>
                             <div className="pt-2">
-                                <Link href={show.url(ticket.id)}>
+                                <Link
+                                    href={show.url({
+                                        current_team: teamSlug,
+                                        ticket: ticket.id,
+                                    })}
+                                >
                                     <Button
                                         variant="outline"
                                         size="sm"
@@ -311,7 +322,12 @@ export default function TicketsEdit({ ticket, priorities }: TicketsEditProps) {
 
                     {/* Footer Actions */}
                     <div className="flex items-center justify-end gap-3 border-t pt-5">
-                        <Link href={show.url(ticket.id)}>
+                        <Link
+                            href={show.url({
+                                current_team: teamSlug,
+                                ticket: ticket.id,
+                            })}
+                        >
                             <Button
                                 type="button"
                                 variant="outline"
@@ -344,19 +360,36 @@ export default function TicketsEdit({ ticket, priorities }: TicketsEditProps) {
     );
 }
 
-TicketsEdit.layout = (props: { ticket: Ticket }) => ({
-    breadcrumbs: [
-        {
-            title: 'Support Tickets',
-            href: index.url(),
-        },
-        {
-            title: `#${props.ticket.id}`,
-            href: show.url(props.ticket.id),
-        },
-        {
-            title: 'Edit',
-            href: edit.url(props.ticket.id),
-        },
-    ],
-});
+TicketsEdit.layout = (props: {
+    ticket: Ticket;
+    currentTeam?: { slug: string } | null;
+}) => {
+    const teamSlug = props.currentTeam?.slug;
+
+    return {
+        breadcrumbs: [
+            {
+                title: 'Support Tickets',
+                href: teamSlug ? index.url(teamSlug) : '/tickets',
+            },
+            {
+                title: `#${props.ticket.id}`,
+                href: teamSlug
+                    ? show.url({
+                          current_team: teamSlug,
+                          ticket: props.ticket.id,
+                      })
+                    : '#',
+            },
+            {
+                title: 'Edit',
+                href: teamSlug
+                    ? edit.url({
+                          current_team: teamSlug,
+                          ticket: props.ticket.id,
+                      })
+                    : '#',
+            },
+        ],
+    };
+};

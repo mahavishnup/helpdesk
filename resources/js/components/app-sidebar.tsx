@@ -20,9 +20,11 @@ import type { NavItem } from '@/types';
 
 export function AppSidebar() {
     const page = usePage();
-    const dashboardUrl = page.props.currentTeam
-        ? dashboard(page.props.currentTeam.slug)
-        : '/';
+    const currentTeam = page.props.currentTeam;
+    const dashboardUrl = currentTeam ? dashboard(currentTeam.slug) : '/';
+    const ticketsUrl = currentTeam
+        ? ticketsIndex(currentTeam.slug).url
+        : '/tickets';
 
     const mainNavItems: NavItem[] = [
         {
@@ -32,7 +34,7 @@ export function AppSidebar() {
         },
         {
             title: 'Support Tickets',
-            href: ticketsIndex.url(),
+            href: ticketsUrl,
             icon: Ticket,
         },
     ];

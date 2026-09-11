@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('team_id')->constrained('teams')->cascadeOnDelete();
             $table->string('title');
             $table->text('description');
             $table->string('status')->default('open')->index();
@@ -26,8 +27,9 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            // Composite index for optimized filtered pagination
-            $table->index(['status', 'priority', 'created_at']);
+            // Composite indexes for optimized tenant-scoped filtered queries
+            $table->index(['team_id', 'status', 'priority', 'created_at']);
+            $table->index(['team_id', 'created_at']);
         });
     }
 
